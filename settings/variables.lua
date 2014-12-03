@@ -14,3 +14,6 @@ browser2   = "iron"
 gui_editor = "gvim"
 graphics   = "gimp"
 mail       = terminal .. " -e mutt "
+
+-- city code - grab it from yahoo weather: https://weather.yahoo.com/
+city = 123456
