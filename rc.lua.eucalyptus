@@ -32,8 +32,8 @@ do
         in_error = true
 
         naughty.notify({ preset = naughty.config.presets.critical,
-                         title = "Oops, an error happened!",
-                         text = err })
+                         title = err, --"Oops, an error happened!",
+                         text =  debug.traceback() })
         in_error = false
     end)
 end
@@ -58,7 +58,7 @@ run_once("unclutter -root")
 os.setlocale(os.getenv("LANG"))
 
 -- beautiful init
-beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/copland/theme.lua")
+beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/eucalyptus/theme.lua")
 
 -- common
 modkey     = "Mod4"
@@ -81,39 +81,38 @@ lain.layout.centerfair.ncol    = 1
 
 local layouts = {
     lain.layout.uselessfair.horizontal,
-    awful.layout.suit.floating,
---    awful.layout.suit.fair,
---    awful.layout.suit.tile,
---    lain.layout.uselesstile,
---    lain.layout.uselessfair,
+--    awful.layout.suit.floating,
+    awful.layout.suit.fair,
+    awful.layout.suit.tile,
+    lain.layout.uselesstile,
+    lain.layout.uselessfair,
 --    lain.layout.termfair,
 --    lain.layout.centerfair,
---    lain.layout.uselesspiral.dwindle,
-	awful.layout.suit.max
+    lain.layout.uselesspiral.dwindle,
+--    awful.layout.suit.max
 }
 -- }}}
 
 -- {{{ Tags
 tags = {
-    names = { "start", "2", "3", "4", "5" },
-    layout = { layouts[1], layouts[2], layouts[3], layouts[4], layouts[5] }
+    names = { "1", "2", "3", "4", "5", "6", "7", "8", "9" },
+    layout = { layouts[1], layouts[1], layouts[1], layouts[1], layouts[1], layouts[1], layouts[1], layouts[1], layouts[1] }
 }
 for s = 1, screen.count() do
    tags[s] = awful.tag(tags.names, s, tags.layout)
 end
--- }}}
 
 -- {{{ Wallpaper
 if beautiful.wallpaper then
     for s = 1, screen.count() do
-        gears.wallpaper.maximized(beautiful.wallpaper, s, true)
+        gears.wallpaper.maximized(beautiful.wallpaper, s, false)
     end
 end
 -- }}}
 
 -- {{{ Menu
 mymainmenu = awful.menu.new({ items = require("menugen").build_menu(),
-                              theme = { height = 16, width = 130 }})
+                              theme = { height = 20, width = 200 }})
 -- }}}
 
 -- {{{ Wibox
@@ -147,7 +146,7 @@ mailwidget = lain.widgets.imap({
         widget:set_markup(markup(blue, mail) .. count)
     end
 })
-]]
+--]]
 
 -- MPD
 mpdicon = wibox.widget.imagebox(beautiful.play)
@@ -358,7 +357,8 @@ for s = 1, screen.count() do
     left_layout:add(mytaglist[s])
     left_layout:add(spr)
     left_layout:add(mypromptbox[s])
-
+	left_layout:add(bar_spr)
+    
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
@@ -394,7 +394,11 @@ root.buttons(awful.util.table.join(
     awful.button({ }, 5, awful.tag.viewprev)
 ))
 -- }}}
-
+--TODO: one timer per tag
+local clientSwitch = { 
+	index = 1,
+	timer = nil
+}
 -- {{{ Key bindings
 globalkeys = awful.util.table.join(
     -- Take a screenshot
@@ -405,7 +409,10 @@ globalkeys = awful.util.table.join(
     -- Tag browsing
     awful.key({ modkey }, "Left",   awful.tag.viewprev       ),
     awful.key({ modkey }, "Right",  awful.tag.viewnext       ),
+--TODO: functionality to do multiple history changes
+
     awful.key({ modkey }, "Tab", awful.tag.history.restore),
+--TODO: functionality to do multiple history changes
 	awful.key({ modkey }, "Caps_Lock", 	
 		function()
 			for i =1, screen.count() do
@@ -477,10 +484,34 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
     awful.key({ altkey,           }, "Tab",
         function ()
-            awful.client.focus.history.previous()
+			if clientSwitch.timer == nil then -- FirstTime
+				clientSwitch.timer = timer { timeout = 1 } -- init timer with interval 1 sec
+				clientSwitch.timer:connect_signal("timeout", -- on timeout
+					function()
+						clientSwitch.timer:stop() -- stop and clear the timer
+						clientSwitch.timer = nil
+						clientSwitch.index = 1
+					end)
+				
+			else -- multiple calls 
+				clientSwitch.timer:stop()
+				i = 1 -- count the focus length
+				while awful.client.focus.history.get(mouse.screen, i) do
+					i = i + 1
+				end
+				if clientSwitch.index < i - 1 then -- increase the index until focus history length
+					clientSwitch.index = clientSwitch.index + 1
+				end
+				if clientSwitch.index > i - 1 then -- if greater than focus history
+					clientSwitch.index = 1 -- something happened, reset index.
+				end
+			end
+			c = awful.client.focus.history.get(mouse.screen, clientSwitch.index )
+			client.focus = c
             if client.focus then
                 client.focus:raise()
             end
+            clientSwitch.timer:start()
         end),
 --TODO: change shortcat for rename
 --    awful.key({ altkey, "Shift"   }, "l",      function () awful.tag.incmwfact( 0.05)     end),
@@ -495,35 +526,29 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey,           }, "q", 
 	function()
 		local t = awful.tag.selected()
-		local prev = awful.layout.get()
-		if prev == awful.layout.suit.floating then
-			awful.layout.set(awful.layout.last, t)
+		if awful.layout.get() == awful.layout.suit.floating then
+			selectedTags = awful.tag.selectedlist(s)
+			if #selectedTags==1 then
+				awful.layout.set(awful.tag.getproperty(t,"lastLayout"))
+			else
+				awful.layout.set(awful.layout.multipleTagsLayout)
+			end
 		else
 			awful.layout.set(awful.layout.suit.floating, t)
-			if prev == awful.layout.suit.max then
-			else
-				awful.layout.last = prev
-			end
-		end
-		if client.focus then
-			client.focus:raise()
 		end
 	end ),
 	awful.key({ modkey,           }, "space", 
 	function()
 		local t = awful.tag.selected()
-		local prev = awful.layout.get()
-		if prev == awful.layout.suit.max then
-			awful.layout.set(awful.layout.last, t)
+		if awful.layout.get() == awful.layout.suit.max then
+			selectedTags = awful.tag.selectedlist(s)
+			if #selectedTags==1 then
+				awful.layout.set(awful.tag.getproperty(t,"lastLayout"))
+			else
+				awful.layout.set(awful.layout.multipleTagsLayout)
+			end
 		else
 			awful.layout.set(awful.layout.suit.max, t)
-			if prev == awful.layout.suit.floating then
-			else
-				awful.layout.last = prev
-			end
-		end
-		if client.focus then
-			client.focus:raise()
 		end
 	end ),
 
@@ -604,7 +629,89 @@ globalkeys = awful.util.table.join(
                   mypromptbox[mouse.screen].widget,
                   awful.util.eval, nil,
                   awful.util.getdir("cache") .. "/history_eval")
-              end)
+              end),
+	awful.key({ modkey,           }, "`", function ()
+--		mouse.screen fails if a tag has none clients.
+		s = mouse.screen -- get screen where the mouse is
+		if s == 0 then -- selected tags are empty
+			lain.util.tag_view_nonempty(-1) -- find a tag with at least one client
+			lain.util.tag_view_nonempty(1)
+			s = awful.tag.getscreen(awful.tag.selected())  -- get the screen of current tag
+		end
+		tags = awful.tag.gettags(s) -- all tags of current screen
+		selectedTags = awful.tag.selectedlist(s) -- get the tags witch are selected
+		if #tags==#selectedTags then -- all tags of the current screen are selected
+			c=awful.mouse.client_under_pointer() -- get the client under the mouse
+			if c ~=nil then -- view only the tag witch the client under the mouse is
+				awful.tag.viewmore(c:tags(),s)
+				if client.focus then
+					client.focus:raise() -- focus to the client
+				end
+			else -- Screen has none clients
+				awful.tag.viewonly(tags[1],s) -- view 1st tag
+			end
+		else -- select all the tags of the current screen
+			awful.tag.viewmore(tags,s)
+			currentLayout = awful.layout.get() -- get the current layout
+			if currentLayout == awful.layout.suit.max or currentLayout == awful.layout.suit.floating then
+				t=awful.tag.selected() -- get the 1st selected tag
+				lastLayout = awful.tag.getproperty(t,"lastLayout") -- get the last layout of the tag before the max/float layout
+				awful.layout.set(lastLayout) -- restore the layout
+			end
+		end
+	end),
+	awful.key({ modkey, "Shift" }, "o", function () -- move all clients to the current screen
+--TODO: use awful.screen getbycoord (x, y, default)	 Return Xinerama screen number corresponding to the given (pixel) coordinates.
+		s = mouse.screen -- get screen where the mouse is
+		if s == 0 then -- selected tags are empty
+			lain.util.tag_view_nonempty(-1) -- find a tag with at least one client
+			lain.util.tag_view_nonempty(1)
+			s = awful.tag.getscreen(awful.tag.selected())  -- get the screen of current tag
+		end
+		activeScreen = s
+		activeScreenTags = awful.tag.gettags(s) -- all tags of current screen
+		for s = 1, screen.count() do -- for each screen 
+			if s~=activeScreen then -- except active screen
+				tags = awful.tag.gettags(s) -- all tags of current screen
+				for t in pairs(tags) do
+					clients = tags[t]:clients()
+					for c in pairs(clients) do
+						if t <= #activeScreenTags then -- move the clients to corresponding tags
+--							awful.client.movetotag(activeScreenTags[t], clients[c])
+							awful.client.toggletag(activeScreenTags[t], clients[c])
+						else -- move clients to active tag
+							awful.client.movetoscreen(clients[c], activeScreen)
+						end
+					end
+				end
+			end
+		end
+	end),
+	awful.key({ modkey, "Shift" }, "`", function ()
+--TODO: call the 2 above functions in reverse order
+	end),
+	awful.key({ modkey, }, "[", function () -- toggle screens counter-clock wise
+		firstScreenTags =  awful.tag.gettags(1) -- all tags of 1st screen
+		selectedTagsList = {} -- a list of selected tags list per screen
+		table.insert(selectedTagsList, awful.tag.selectedlist(1)) -- add selected tags of 1st screen
+		for s = 2, screen.count() do -- for each screen from 2nt to last move tags and selected tags to the previous screen
+			tags = awful.tag.gettags(s) -- all tags of current screen
+			table.insert(selectedTagsList, awful.tag.selectedlist(s)) -- add selected tags list of current screen
+			for t in pairs(tags) do -- for each tag
+				awful.tag.setscreen(tags[t],s - 1) -- move tags to previous screen
+			end
+		end
+		-- move first screen backup to the last one
+		for t in pairs(firstScreenTags) do -- for each tag
+				awful.tag.setscreen(firstScreenTags[t], screen.count())  -- move tags to last screen
+		end
+		-- restore selected tags values
+		for s in pairs(selectedTagsList) do -- for each screen
+			if selectedTagsList[s] ~=nil then --move selected tags list to previous screen
+				awful.tag.viewmore(selectedTagsList[s], ((s - 2) % screen.count())+1) -- simple maths, not counting from 0
+			end
+		end
+	end)
 )
 
 clientkeys = awful.util.table.join(
@@ -621,33 +728,13 @@ clientkeys = awful.util.table.join(
             -- The client currently has the input focus, so it cannot be
             -- minimized, since minimized clients can't have the focus.
             c.minimized = true
-        end),
+        end)
     --awful.key({ modkey,           }, "m",
         --function (c)
             --c.maximized_horizontal = not c.maximized_horizontal
             --c.maximized_vertical   = not c.maximized_vertical
         --end)
-	awful.key({ modkey,   "Shift"        }, "`",
-	function (c)
---		mouse.screen fails if a tag has none clients.
-		s = mouse.screen
-		if s == 0 then
-			lain.util.tag_view_nonempty(-1)
-			s = awful.tag.getscreen(awful.tag.selected())
-		end
-		tags = awful.tag.gettags(s)
-		selectedTags = awful.tag.selectedlist(s)
-		if #tags==#selectedTags then
-			awful.tag.viewmore(c:tags(),s)
-				if client.focus then
-					client.focus:raise()
-				end
-		else
-			awful.tag.viewmore(tags,s)
---TODO: if active tag layout is max change it
---			awful.layout.set(awful.layout.suit.fair)
-		end
-	end)
+
 )
 
 -- Bind all key numbers to tags.
@@ -715,26 +802,7 @@ awful.rules.rules = {
                      buttons = clientbuttons,
 	                   size_hints_honor = false } },
     { rule = { class = "URxvt" },
-          properties = { opacity = 0.99 } },
-
-    { rule = { class = "MPlayer" },
-          properties = { floating = true } },
-
-    { rule = { class = "Dwb" },
-          properties = { tag = tags[1][1] } },
-
-    { rule = { class = "Iron" },
-          properties = { tag = tags[1][1] } },
-
-    { rule = { instance = "plugin-container" },
-          properties = { tag = tags[1][1] } },
-
-	  { rule = { class = "Gimp" },
-     	    properties = { tag = tags[1][3] } },
-
-    { rule = { class = "Gimp", role = "gimp-image-window" },
-          properties = { maximized_horizontal = true,
-                         maximized_vertical = true } },
+          properties = { opacity = 0.1 } },
 }
 -- }}}
 
@@ -753,6 +821,7 @@ client.connect_signal("manage", function (c, startup)
              end
          end
      end)
+
 
     local titlebars_enabled = true
     if titlebars_enabled and (c.type == "normal" or c.type == "dialog") then
@@ -827,4 +896,58 @@ for s = 1, screen.count() do screen[s]:connect_signal("arrange", function ()
         end
       end)
 end
--- }}}
+
+--keep the history of layouts per tag
+awful.tag.attached_connect_signal(nil, "property::layout", function(t)
+	s = awful.tag.getscreen(t)
+	currentLayout = awful.layout.get()
+	if currentLayout == awful.layout.suit.max or currentLayout == awful.layout.suit.floating then
+		awful.tag.setproperty(t,"tilingLayout", false)
+	else
+		selectedTags = awful.tag.selectedlist(s)
+		if #selectedTags == 1 then -- sigle tag selected
+			awful.tag.setproperty(t,"lastLayout", currentLayout)
+			awful.tag.setproperty(t,"tilingLayout", true)
+		end
+	end
+	if client.focus then
+		client.focus:raise()
+	end
+end)
+---[[
+--TODO: multiple tags selection have its one history like a meta-tag fixes needing
+for s = 1, screen.count() do screen[s]:connect_signal("tag::history::update", function()    
+		t = awful.tag.selected(s)
+		selectedTags = awful.tag.selectedlist(s)
+		if #selectedTags > 1 then -- multiple tags selected
+			if awful.layout.get() ~= awful.layout.suit.floating and  awful.layout.get() ~= awful.layout.suit.floating then
+				awful.layout.multipleTagsLayout =  awful.layout.get()
+			end
+		else -- single tag selected
+			if awful.layout.multipleTagsLayout ~= nil then -- deselecting multiple tags
+				if awful.tag.getproperty(t,"lastLayout") ~= nil then
+					awful.layout.set(awful.tag.getproperty(t,"lastLayout"))
+					awful.layout.multipleTagsLayout = nil
+				end
+			end
+			if awful.tag.getproperty(t,"lastLayout") == nil then
+				awful.tag.setproperty(t,"lastLayout", awful.layout.get())
+			   --do some stuff when virtual desktop has changed
+			end
+		   --TODO:Correct the focus
+			c = awful.mouse.client_under_pointer()
+			if c ~= nil then
+				if c:isvisible() == false then
+				else
+					client.focus = c
+					client.focus:raise()
+				end
+			end
+				--awful.client.focus.byidx(-1)
+		end
+	end)
+	--initialize visible tag for each screen
+	t = awful.tag.selected(s)
+	awful.tag.setproperty(t,"lastLayout", awful.layout.get())
+end
+--]]
