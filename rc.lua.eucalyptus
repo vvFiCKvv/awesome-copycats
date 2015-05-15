@@ -73,37 +73,61 @@ local switchTimer = {
 -- }}}
 
 -- {{{ Functions
---- Switch client history backwards.
-awful.client.focus.history.switch = function ()
-	if switchTimer.type ~= switchTimer.types.client 
-	or switchTimer.screen ~= mouse.screen 
-	or switchTimer.tag ~= awful.tag.selected() then
-		switchTimer:clear()
+--- Move mouse to center of a client
+-- @param a client to move the mouse.
+awful.mouse.moveto_client = function (c, togle_tag_enabled)
+	mCords = mouse.coords()
+	cCords = c:geometry()
+	if mCords.x < cCords.x or mCords.y < cCords.y
+	or mCords.x > cCords.x + cCords.width
+	or mCords.y > cCords.y + cCords.height then
+		x0 = cCords.x + cCords.width/2
+		y0 = cCords.y + cCords.height/2
+		mouse.coords({x = x0, y = y0})
 	end
-	if switchTimer.timer == nil then -- FirstTime
-		switchTimer:init(1, switchTimer.types.client)
-		
-	else -- multiple calls 
-		switchTimer.timer:stop()
-		i = 1 -- count the focus length
-		while awful.client.focus.history.get(mouse.screen, i) do
-			i = i + 1
+	if togle_tag_enabled and c:isvisible() == false then
+		awful.tag.viewmore(c:tags())
+	end
+end
+
+--- Switch client history backwards.
+awful.client.focus.history.switch = function (multiple_switch_enabled, mouse_move_enabled)
+	if multiple_switch_enabled then
+		if switchTimer.type ~= switchTimer.types.client 
+		or switchTimer.screen ~= mouse.screen 
+		or switchTimer.tag ~= awful.tag.selected() then
+			switchTimer:clear()
 		end
-		if switchTimer.index < i - 1 then -- increase the index until focus history length
-			switchTimer.index = switchTimer.index + 1
+		if switchTimer.timer == nil then -- FirstTime
+			switchTimer:init(1, switchTimer.types.client)
+			
+		else -- multiple calls 
+			switchTimer.timer:stop()
+			i = 1 -- count the focus length
+			while awful.client.focus.history.get(mouse.screen, i) do
+				i = i + 1
+			end
+			if switchTimer.index < i - 1 then -- increase the index until focus history length
+				switchTimer.index = switchTimer.index + 1
+			end
+			if switchTimer.index > i - 1 then -- if greater than focus history
+				switchTimer.index = 1 -- something happened, reset index.
+			end
 		end
-		if switchTimer.index > i - 1 then -- if greater than focus history
-			switchTimer.index = 1 -- something happened, reset index.
-		end
+		switchTimer.timer:start()
+	else
+	switchTimer.index = 1
 	end
 	c = awful.client.focus.history.get(mouse.screen, switchTimer.index )
 	if c then
 		client.focus = c
+		if mouse_move_enabled then
+			awful.mouse.moveto_client(c)
+		end
 	end
 	if client.focus then
 		client.focus:raise()
 	end
-	switchTimer.timer:start()
 end
 --- Switch tag history backwards.
 --- mouse.screen fails if a tag has none clients.
@@ -122,21 +146,11 @@ awful.tag.history.switch = function()
 	awful.tag.history.update(screen[mouse.screen])
 	switchTimer.timer:start()
 end
---- get active screen where the mouse is
--- @return The active screen
-awful.screen.active = function()
-	s = mouse.screen -- get screen where the mouse is
-	if s == 0 then -- selected tags are empty
-		lain.util.tag_view_nonempty(-1) -- find a tag with at least one client
-		lain.util.tag_view_nonempty(1)
-		s = awful.tag.getscreen(awful.tag.selected())  -- get the screen of current tag
-	end
-	return s
-end 
+
 --- toggle active's screen tags between all tags and tags where focus client is
 awful.tag.viewall_toggle = function ()
 	-- mouse.screen fails if a tag has none clients.
-	s = awful.screen.active()
+	s = mouse.screen
 	tags = awful.tag.gettags(s) -- all tags of current screen
 	selectedTags = awful.tag.selectedlist(s) -- get the tags witch are selected
 	if #tags==#selectedTags then -- all tags of the current screen are selected
@@ -162,7 +176,7 @@ end
 --- move all clients to the active screen
 awful.screen.move_all_clients = function ()
 --TODO: use awful.screen getbycoord (x, y, default)	 Return Xinerama screen number corresponding to the given (pixel) coordinates.
-	activeScreen =  awful.screen.active()
+	activeScreen =  mouse.screen
 	activeScreenTags = awful.tag.gettags(s) -- all tags of current screen
 	for s = 1, screen.count() do -- for each screen 
 		if s~=activeScreen then -- except active screen
@@ -255,12 +269,18 @@ awful.tag.viewall_screens_toggle = function ()
 		awful.tag.viewall_toggle()
 	else
 --TODO: focus client and client's tag, move mouse to client's screen or move screens to mouse
-		c = client_under_pointer ()
+		c = awful.mouse.client_under_pointer()
 		awful.tag.viewall_toggle()
-		s0 =  awful.screen.active()
+		s0 =  mouse.screen
 		awful.restore_snapshot()
-		s1 =  awful.screen.active()
-		awful.screen.toggle(s0 -s1)
+--		s1 = c.screen
+		awful.mouse.moveto_client(c,true)
+		s1 =  mouse.screen
+
+		awful.screen.toggle(s0 - s1)
+		
+--		awful.tag.viewmore(c:tags())
+		awful.mouse.moveto_client(c, true)
 	end
 end
 -- }}}
@@ -704,7 +724,7 @@ globalkeys = awful.util.table.join(
     awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
     awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto),
-    awful.key({ altkey,           }, "Tab", function ()  awful.client.focus.history.switch() end),
+    awful.key({ altkey,           }, "Tab", function ()  awful.client.focus.history.switch(true, true) end),
 --TODO: change shortcat for rename
 --    awful.key({ altkey, "Shift"   }, "l",      function () awful.tag.incmwfact( 0.05)     end),
 --    awful.key({ altkey, "Shift"   }, "h",      function () awful.tag.incmwfact(-0.05)     end),
