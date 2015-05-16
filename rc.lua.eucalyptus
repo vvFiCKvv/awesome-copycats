@@ -150,6 +150,7 @@ end
 
 --- toggle active's screen tags between all tags and tags where focus client is
 awful.tag.viewall_toggle = function ()
+--#TODO: use lain.layout.uselessfair
 	-- mouse.screen fails if a tag has none clients.
 	s = mouse.screen
 	tags = awful.tag.gettags(s) -- all tags of current screen
@@ -327,14 +328,18 @@ lain.layout.centerfair.nmaster = 3
 lain.layout.centerfair.ncol    = 1
 
 local layouts = {
---    lain.layout.uselessfair.horizontal,
---    awful.layout.suit.fair,
-    awful.layout.suit.tile,
---    lain.layout.uselesstile,
---    lain.layout.uselessfair,
---    lain.layout.termfair,
---    lain.layout.centerfair,
---    lain.layout.uselesspiral.dwindle,
+	awful.layout.suit.tile.top, -- suit is the only one mouse resize works
+	awful.layout.suit.tile,
+	awful.layout.suit.tile.left,
+	awful.layout.suit.tile.bottom,
+--TODO: fix mouse resize see https://github.com/Ram-Z/lain/commit/19c89b4f00231aa29019708134fce39a40d4b06e
+	lain.layout.uselessfair.horizontal,
+	awful.layout.suit.fair,
+	lain.layout.uselesstile,
+	lain.layout.uselessfair,
+	lain.layout.termfair,
+	lain.layout.centerfair,
+	lain.layout.uselesspiral.dwindle,
 }
 -- }}}
 
@@ -980,21 +985,7 @@ client.connect_signal("manage", function (c, startup)
 
 		-- Widgets that are aligned to the left
 		local left_layout = wibox.layout.fixed.horizontal()
-		-- Create a resize handle
-		local resize_handle = wibox.widget.imagebox()
-		resize_handle:set_image(beautiful.awesome_icon)
-		resize_handle:buttons( awful.util.table.join(
-			awful.button({ }, 1, function(geometry)
-				awful.mouse.client.resize(c)
-			end)))
---		resize_handle:connect_signal("mouse::enter",function()
---			set_underlay(c,title,{"Resize"})
---		end)
---		resize_handle:connect_signal("mouse::leave",function()
---			set_underlay(c,title)
---		end)
 
-		left_layout:add(resize_handle)
 		left_layout:add(awful.titlebar.widget.floatingbutton(c))
         left_layout:add(awful.titlebar.widget.stickybutton(c))
 		
