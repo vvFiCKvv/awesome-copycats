@@ -73,6 +73,7 @@ local switchTimer = {
 -- }}}
 
 -- {{{ Functions
+
 --- Move mouse to center of a client
 -- @param a client to move the mouse.
 awful.mouse.moveto_client = function (c, togle_tag_enabled)
@@ -168,8 +169,8 @@ awful.tag.viewall_toggle = function ()
 		currentLayout = awful.layout.get() -- get the current layout
 		if currentLayout == awful.layout.suit.max or currentLayout == awful.layout.suit.floating then
 			t=awful.tag.selected() -- get the 1st selected tag
-			lastLayout = awful.tag.getproperty(t,"lastLayout") -- get the last layout of the tag before the max/float layout
-			awful.layout.set(lastLayout) -- restore the layout
+			last_layout = awful.tag.getproperty(t,"last_layout") -- get the last layout of the tag before the max/float layout
+			awful.layout.set(last_layout) -- restore the layout
 		end
 	end
 end
@@ -326,16 +327,14 @@ lain.layout.centerfair.nmaster = 3
 lain.layout.centerfair.ncol    = 1
 
 local layouts = {
-    lain.layout.uselessfair.horizontal,
---    awful.layout.suit.floating,
-    awful.layout.suit.fair,
+--    lain.layout.uselessfair.horizontal,
+--    awful.layout.suit.fair,
     awful.layout.suit.tile,
-    lain.layout.uselesstile,
-    lain.layout.uselessfair,
+--    lain.layout.uselesstile,
+--    lain.layout.uselessfair,
 --    lain.layout.termfair,
 --    lain.layout.centerfair,
-    lain.layout.uselesspiral.dwindle,
---    awful.layout.suit.max
+--    lain.layout.uselesspiral.dwindle,
 }
 -- }}}
 
@@ -739,11 +738,10 @@ globalkeys = awful.util.table.join(
 	function()
 		local t = awful.tag.selected()
 		if awful.layout.get() == awful.layout.suit.floating then
-			selectedTags = awful.tag.selectedlist(s)
-			if #selectedTags==1 then
-				awful.layout.set(awful.tag.getproperty(t,"lastLayout"))
+			if awful.layout.multiTags then
+				awful.layout.set(awful.layout.multiTags.last_layout)
 			else
-				awful.layout.set(awful.layout.multipleTagsLayout)
+				awful.layout.set(awful.tag.getproperty(t,"last_layout"))
 			end
 		else
 			awful.layout.set(awful.layout.suit.floating, t)
@@ -754,10 +752,11 @@ globalkeys = awful.util.table.join(
 		local t = awful.tag.selected()
 		if awful.layout.get() == awful.layout.suit.max then
 			selectedTags = awful.tag.selectedlist(s)
-			if #selectedTags==1 then
-				awful.layout.set(awful.tag.getproperty(t,"lastLayout"))
+			if awful.layout.multiTags then
+				awful.layout.set(awful.layout.multiTags.last_layout)
+				
 			else
-				awful.layout.set(awful.layout.multipleTagsLayout)
+				awful.layout.set(awful.tag.getproperty(t,"last_layout"))
 			end
 		else
 			awful.layout.set(awful.layout.suit.max, t)
@@ -864,12 +863,12 @@ clientkeys = awful.util.table.join(
             -- The client currently has the input focus, so it cannot be
             -- minimized, since minimized clients can't have the focus.
             c.minimized = true
+        end),
+    awful.key({ modkey,           }, "m",
+        function (c)
+            c.maximized_horizontal = not c.maximized_horizontal
+            c.maximized_vertical   = not c.maximized_vertical
         end)
-    --awful.key({ modkey,           }, "m",
-        --function (c)
-            --c.maximized_horizontal = not c.maximized_horizontal
-            --c.maximized_vertical   = not c.maximized_vertical
-        --end)
 
 )
 
@@ -939,6 +938,9 @@ awful.rules.rules = {
 	                   size_hints_honor = false } },
     { rule = { class = "URxvt" },
           properties = { opacity = 0.1 } },
+    { rule = { class = "Conky" },
+      properties = { border_width = 0,
+                     border_color = beautiful.border_normal,} },
 }
 -- }}}
 
@@ -976,27 +978,75 @@ client.connect_signal("manage", function (c, startup)
                 end)
                 )
 
-        -- Widgets that are aligned to the right
-        local right_layout = wibox.layout.fixed.horizontal()
-        right_layout:add(awful.titlebar.widget.floatingbutton(c))
-        right_layout:add(awful.titlebar.widget.maximizedbutton(c))
-        right_layout:add(awful.titlebar.widget.stickybutton(c))
-        right_layout:add(awful.titlebar.widget.ontopbutton(c))
-        right_layout:add(awful.titlebar.widget.closebutton(c))
+		-- Widgets that are aligned to the left
+		local left_layout = wibox.layout.fixed.horizontal()
+		-- Create a resize handle
+		local resize_handle = wibox.widget.imagebox()
+		resize_handle:set_image(beautiful.awesome_icon)
+		resize_handle:buttons( awful.util.table.join(
+			awful.button({ }, 1, function(geometry)
+				awful.mouse.client.resize(c)
+			end)))
+--		resize_handle:connect_signal("mouse::enter",function()
+--			set_underlay(c,title,{"Resize"})
+--		end)
+--		resize_handle:connect_signal("mouse::leave",function()
+--			set_underlay(c,title)
+--		end)
 
+		left_layout:add(resize_handle)
+		left_layout:add(awful.titlebar.widget.floatingbutton(c))
+        left_layout:add(awful.titlebar.widget.stickybutton(c))
+		
         -- The title goes in the middle
-        local middle_layout = wibox.layout.flex.horizontal()
-        local title = awful.titlebar.widget.titlewidget(c)
+        local middle_layout = wibox.layout.fixed.horizontal()
+--        local title = awful.titlebar.widget.titlewidget(c)
+		if beautiful.titlebar_disable_icon == false then
+			local icon = awful.titlebar.widget.iconwidget(c)
+			middle_layout:add(icon)
+		end
+		local title = wibox.widget.textbox()
+		local function update()
+			title:set_text(" " .. c.class ..": " .. c.name or "<unknown>")
+			--c.icon_name
+		end
+		c:connect_signal("property::name", update)
+		update()
+		
         title:set_align("center")
         middle_layout:add(title)
         middle_layout:buttons(buttons)
 
+		-- Widgets that are aligned to the right
+        local right_layout = wibox.layout.fixed.horizontal()
+        right_layout:add(awful.titlebar.widget.ontopbutton(c))
+        right_layout:add(awful.titlebar.widget.maximizedbutton(c))
+        right_layout:add(awful.titlebar.widget.closebutton(c))
+		
         -- Now bring it all together
         local layout = wibox.layout.align.horizontal()
         layout:set_right(right_layout)
         layout:set_middle(middle_layout)
+        layout:set_left(left_layout)
 
         awful.titlebar(c,{size=16}):set_widget(layout)
+        
+        local buttons = awful.util.table.join(
+                awful.button({ }, 1, function()
+                    client.focus = c
+                    c:raise()
+                    awful.mouse.client.resize(c)
+                end)
+                )
+        local middle_layout = wibox.layout.flex.horizontal()
+        middle_layout:buttons(buttons)
+        local layout = wibox.layout.align.horizontal()
+         layout:set_middle(middle_layout)
+        local size = 4
+        awful.titlebar(c,{size=size,position="bottom"}):set_widget(layout)
+        awful.titlebar(c,{size=size,position="left"}):set_widget(layout)
+        awful.titlebar(c,{size=size,position="right"}):set_widget(layout)
+        
     end
 end)
 
@@ -1042,7 +1092,7 @@ awful.tag.attached_connect_signal(nil, "property::layout", function(t)
 	else
 		selectedTags = awful.tag.selectedlist(s)
 		if #selectedTags == 1 then -- sigle tag selected
-			awful.tag.setproperty(t,"lastLayout", currentLayout)
+			awful.tag.setproperty(t,"last_layout", currentLayout)
 			awful.tag.setproperty(t,"tilingLayout", true)
 		end
 	end
@@ -1057,18 +1107,19 @@ for s = 1, screen.count() do
 		t = awful.tag.selected(s)
 		selectedTags = awful.tag.selectedlist(s)
 		if #selectedTags > 1 then -- multiple tags selected
-			if awful.layout.get() ~= awful.layout.suit.floating and  awful.layout.get() ~= awful.layout.suit.floating then
-				awful.layout.multipleTagsLayout =  awful.layout.get()
+			if awful.layout.get() ~= awful.layout.suit.floating and  awful.layout.get() ~= awful.layout.suit.max then
+				awful.layout.multiTags = {}
+				awful.layout.multiTags.last_layout =  awful.layout.get()
 			end
 		else -- single tag selected
-			if awful.layout.multipleTagsLayout ~= nil then -- deselecting multiple tags
-				if awful.tag.getproperty(t,"lastLayout") ~= nil then
-					awful.layout.set(awful.tag.getproperty(t,"lastLayout"))
-					awful.layout.multipleTagsLayout = nil
+			if awful.layout.multiTags ~= nil then -- deselecting multiple tags
+				if awful.tag.getproperty(t,"last_layout") ~= nil then
+					awful.layout.set(awful.tag.getproperty(t,"last_layout"))
+					awful.layout.multiTags = nil
 				end
 			end
-			if awful.tag.getproperty(t,"lastLayout") == nil then
-				awful.tag.setproperty(t,"lastLayout", awful.layout.get())
+			if awful.tag.getproperty(t,"last_layout") == nil then
+				awful.tag.setproperty(t,"last_layout", awful.layout.get())
 			   --do some stuff when virtual desktop has changed
 			end
 		   --TODO:Correct the focus
@@ -1085,7 +1136,7 @@ for s = 1, screen.count() do
 	end)
 	--initialize visible tag for each screen
 	t = awful.tag.selected(s)
-	awful.tag.setproperty(t,"lastLayout", awful.layout.get())
+	awful.tag.setproperty(t,"last_layout", awful.layout.get())
 end
 --]]
 --local tag = require("awful.tag")

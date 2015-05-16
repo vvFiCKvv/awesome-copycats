@@ -9,22 +9,31 @@ theme                                           = {}
 
 theme.dir                                       = os.getenv("HOME") .. "/.config/awesome/themes/eucalyptus"
 theme.wallpaper                                 = theme.dir .. "/wall.jpg"
+palette = {}
+palette.baseA = "#40088B"
+palette.baseB = "#211236"
+palette.baseC = "#5C3F82"
+palette.complementaryA ="#FFFFFF"
+palette.complementaryB ="#AAAAAA"
 
 theme.font                                      = "Tamsyn 10.5"
-theme.fg_normal                                 = "#BBBBBB"
-theme.fg_focus                                  = "#78A4FF"
-theme.bg_normal                                 = "#111111"
-theme.bg_focus                                  = "#111111"
+theme.fg_normal                                 = palette.complementaryB
+theme.fg_focus                                  = palette.complementaryA
+theme.bg_normal                                 = palette.baseB
+theme.bg_focus                                  = palette.baseB
 theme.fg_urgent                                 = "#000000"
 theme.bg_urgent                                 = "#FFFFFF"
 theme.border_width                              = 1
-theme.border_normal                             = "#141414"
-theme.border_focus                              = "#93B6FF"
-theme.taglist_fg_focus                          = "#FFFFEF"
-theme.taglist_bg_focus                          = "#111111"
-theme.taglist_bg_normal                         = "#111111"
-theme.titlebar_bg_normal                        = "#191919"
-theme.titlebar_bg_focus                         = "#262626"
+theme.border_normal                             = palette.baseB
+theme.border_focus                              = palette.complementaryA
+
+theme.taglist_fg_focus                          = palette.complementaryA
+theme.taglist_bg_focus                          = palette.baseC
+theme.taglist_bg_normal                         = palette.baseB
+
+theme.titlebar_bg_normal                        = palette.baseB
+theme.titlebar_bg_focus                         = palette.baseC
+theme.titlebar_disable_icon                     = true
 theme.menu_height                               = "15"
 theme.menu_width                                = "150"
 
@@ -65,28 +74,28 @@ theme.layout_fullscreen                         = theme.dir .. "/icons/fullscree
 theme.layout_magnifier                          = theme.dir .. "/icons/magnifier.png"
 theme.layout_floating                           = theme.dir .. "/icons/floating.png"
 
-theme.titlebar_close_button_focus               = theme.dir .. "/icons/titlebar/close_focus.png"
-theme.titlebar_close_button_normal              = theme.dir .. "/icons/titlebar/close_normal.png"
+theme.titlebar_close_button_focus               = theme.dir .. "/icons/titlebar/close_active.png"
+theme.titlebar_close_button_normal              = theme.dir .. "/icons/titlebar/close_active.png"
 
-theme.titlebar_ontop_button_focus_active        = theme.dir .. "/icons/titlebar/ontop_focus_active.png"
-theme.titlebar_ontop_button_normal_active       = theme.dir .. "/icons/titlebar/ontop_normal_active.png"
-theme.titlebar_ontop_button_focus_inactive      = theme.dir .. "/icons/titlebar/ontop_focus_inactive.png"
-theme.titlebar_ontop_button_normal_inactive     = theme.dir .. "/icons/titlebar/ontop_normal_inactive.png"
+theme.titlebar_ontop_button_focus_active        = theme.dir .. "/icons/titlebar/ontop_active.png"
+theme.titlebar_ontop_button_normal_active       = theme.dir .. "/icons/titlebar/ontop_active.png"
+theme.titlebar_ontop_button_focus_inactive      = theme.dir .. "/icons/titlebar/ontop.png"
+theme.titlebar_ontop_button_normal_inactive     = theme.dir .. "/icons/titlebar/ontop.png"
 
-theme.titlebar_sticky_button_focus_active       = theme.dir .. "/icons/titlebar/sticky_focus_active.png"
-theme.titlebar_sticky_button_normal_active      = theme.dir .. "/icons/titlebar/sticky_normal_active.png"
-theme.titlebar_sticky_button_focus_inactive     = theme.dir .. "/icons/titlebar/sticky_focus_inactive.png"
-theme.titlebar_sticky_button_normal_inactive    = theme.dir .. "/icons/titlebar/sticky_normal_inactive.png"
+theme.titlebar_sticky_button_focus_active       = theme.dir .. "/icons/titlebar/sticky_active.png"
+theme.titlebar_sticky_button_normal_active      = theme.dir .. "/icons/titlebar/sticky_active.png"
+theme.titlebar_sticky_button_focus_inactive     = theme.dir .. "/icons/titlebar/sticky.png"
+theme.titlebar_sticky_button_normal_inactive    = theme.dir .. "/icons/titlebar/sticky.png"
 
-theme.titlebar_floating_button_focus_active     = theme.dir .. "/icons/titlebar/floating_focus_active.png"
-theme.titlebar_floating_button_normal_active    = theme.dir .. "/icons/titlebar/floating_normal_active.png"
-theme.titlebar_floating_button_focus_inactive   = theme.dir .. "/icons/titlebar/floating_focus_inactive.png"
-theme.titlebar_floating_button_normal_inactive  = theme.dir .. "/icons/titlebar/floating_normal_inactive.png"
+theme.titlebar_floating_button_focus_active     = theme.dir .. "/icons/titlebar/floating_active.png"
+theme.titlebar_floating_button_normal_active    = theme.dir .. "/icons/titlebar/floating_active.png"
+theme.titlebar_floating_button_focus_inactive   = theme.dir .. "/icons/titlebar/floating.png"
+theme.titlebar_floating_button_normal_inactive  = theme.dir .. "/icons/titlebar/floating.png"
 
-theme.titlebar_maximized_button_focus_active    = theme.dir .. "/icons/titlebar/maximized_focus_active.png"
-theme.titlebar_maximized_button_normal_active   = theme.dir .. "/icons/titlebar/maximized_normal_active.png"
-theme.titlebar_maximized_button_focus_inactive  = theme.dir .. "/icons/titlebar/maximized_focus_inactive.png"
-theme.titlebar_maximized_button_normal_inactive = theme.dir .. "/icons/titlebar/maximized_normal_inactive.png"
+theme.titlebar_maximized_button_focus_active    = theme.dir .. "/icons/titlebar/maximized_active.png"
+theme.titlebar_maximized_button_normal_active   = theme.dir .. "/icons/titlebar/maximized_active.png"
+theme.titlebar_maximized_button_focus_inactive  = theme.dir .. "/icons/titlebar/maximized.png"
+theme.titlebar_maximized_button_normal_inactive = theme.dir .. "/icons/titlebar/maximized.png"
 
 -- lain related
 theme.useless_gap_width                         = 0
