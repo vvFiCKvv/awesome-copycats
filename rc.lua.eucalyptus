@@ -374,7 +374,7 @@ green  = "#8FEB8F"
 mytextclock = awful.widget.textclock("<span font='Tamsyn 5'> </span>%H:%M ")
 
 -- Calendar
-lain.widgets.calendar:attach(mytextclock)
+lain.widgets.calendar:attach(mytextclock, {position = "bottom_right"})
 
 --[[ Mail IMAP check
 -- commented because it needs to be set before use
@@ -982,16 +982,55 @@ client.connect_signal("manage", function (c, startup)
                     awful.mouse.client.resize(c)
                 end)
                 )
-
+		local infoBox = {}
+		infoBox.textbox = wibox.widget.textbox()
+		infoBox.reset_text = function(this)
+			local infoString = ""
+			local space = ""
+			for k,v in ipairs(c:tags()) do
+				if infoString ~= "" then
+					space = ", "
+				end
+				infoString = infoString .. space .. v.name
+			end
+			this:set_text(infoString)
+		end
+		infoBox.set_text = function(this, text)
+			infoString = " < "
+			infoString = infoString .. text
+			infoString = infoString .. " > "
+			this.textbox:set_text(infoString)
+		end
+		infoBox:reset_text()
+		c:connect_signal("tagged",function()
+			infoBox:reset_text()
+		end)
+		c:connect_signal("untagged",function()
+			infoBox:reset_text()
+		end)
 		-- Widgets that are aligned to the left
 		local left_layout = wibox.layout.fixed.horizontal()
-
-		left_layout:add(awful.titlebar.widget.floatingbutton(c))
-        left_layout:add(awful.titlebar.widget.stickybutton(c))
+		widget = awful.titlebar.widget.floatingbutton(c)
+		widget:connect_signal("mouse::enter",function()
+			infoBox:set_text("Floating")
+		end)
+		widget:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
+		left_layout:add(widget)
+		
+		widget = awful.titlebar.widget.stickybutton(c)
+		widget:connect_signal("mouse::enter",function()
+			infoBox:set_text("Sticky")
+		end)
+		widget:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
+		left_layout:add(widget)
+		left_layout:add(infoBox.textbox)
 		
         -- The title goes in the middle
-        local middle_layout = wibox.layout.fixed.horizontal()
---        local title = awful.titlebar.widget.titlewidget(c)
+        local middle_layout = wibox.layout.flex.horizontal()
 		if beautiful.titlebar_disable_icon == false then
 			local icon = awful.titlebar.widget.iconwidget(c)
 			middle_layout:add(icon)
@@ -999,7 +1038,6 @@ client.connect_signal("manage", function (c, startup)
 		local title = wibox.widget.textbox()
 		local function update()
 			title:set_text(" " .. c.class ..": " .. c.name or "<unknown>")
-			--c.icon_name
 		end
 		c:connect_signal("property::name", update)
 		update()
@@ -1010,9 +1048,33 @@ client.connect_signal("manage", function (c, startup)
 
 		-- Widgets that are aligned to the right
         local right_layout = wibox.layout.fixed.horizontal()
-        right_layout:add(awful.titlebar.widget.ontopbutton(c))
-        right_layout:add(awful.titlebar.widget.maximizedbutton(c))
-        right_layout:add(awful.titlebar.widget.closebutton(c))
+        
+        widget = awful.titlebar.widget.ontopbutton(c)
+		widget:connect_signal("mouse::enter",function()
+			infoBox:set_text("On Top")
+		end)
+		widget:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
+        right_layout:add(widget)
+        
+		widget = awful.titlebar.widget.maximizedbutton(c)
+		widget:connect_signal("mouse::enter",function()
+			infoBox:set_text("Maximize")
+		end)
+		widget:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
+        right_layout:add(widget)
+        
+		widget = awful.titlebar.widget.closebutton(c)
+		widget:connect_signal("mouse::enter",function()
+			infoBox:set_text("Close")
+		end)
+		widget:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
+        right_layout:add(widget)
 		
         -- Now bring it all together
         local layout = wibox.layout.align.horizontal()
@@ -1020,7 +1082,7 @@ client.connect_signal("manage", function (c, startup)
         layout:set_middle(middle_layout)
         layout:set_left(left_layout)
 
-        awful.titlebar(c,{size=16}):set_widget(layout)
+		awful.titlebar(c,{size=16}):set_widget(layout)
         
         local buttons = awful.util.table.join(
                 awful.button({ }, 1, function()
@@ -1034,9 +1096,30 @@ client.connect_signal("manage", function (c, startup)
         local layout = wibox.layout.align.horizontal()
          layout:set_middle(middle_layout)
         local size = 4
-        awful.titlebar(c,{size=size,position="bottom"}):set_widget(layout)
-        awful.titlebar(c,{size=size,position="left"}):set_widget(layout)
-        awful.titlebar(c,{size=size,position="right"}):set_widget(layout)
+        titlebar = awful.titlebar(c,{size=size,position="bottom"})
+        titlebar:set_widget(layout)
+        titlebar:connect_signal("mouse::enter",function()
+			infoBox:set_text("Resize")
+		end)
+		titlebar:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
+		titlebar = awful.titlebar(c,{size=size,position="left"})
+        titlebar:set_widget(layout)
+        titlebar:connect_signal("mouse::enter",function()
+			infoBox:set_text("Resize")
+		end)
+		titlebar:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
+		titlebar = awful.titlebar(c,{size=size,position="right"})
+        titlebar:set_widget(layout)
+        titlebar:connect_signal("mouse::enter",function()
+			infoBox:set_text("Resize")
+		end)
+		titlebar:connect_signal("mouse::leave",function()
+			infoBox:reset_text()
+		end)
         
     end
 end)
