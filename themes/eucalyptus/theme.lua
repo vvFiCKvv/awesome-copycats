@@ -34,8 +34,6 @@ theme.taglist_bg_normal                         = palette.baseB
 theme.titlebar_bg_normal                        = palette.baseB
 theme.titlebar_bg_focus                         = palette.baseC
 theme.titlebar_disable_icon                     = true
-theme.menu_height                               = "15"
-theme.menu_width                                = "150"
 
 theme.tasklist_sticky                           = ""
 theme.tasklist_ontop                            = ""

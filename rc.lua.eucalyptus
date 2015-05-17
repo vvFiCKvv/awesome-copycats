@@ -16,6 +16,8 @@ local naughty   = require("naughty")
 local drop      = require("scratchdrop")
 local lain      = require("lain")
 local eminent   = require("eminent")
+
+local radical = require("radical")
 -- }}}
 
 -- {{{ Error handling
@@ -150,7 +152,7 @@ end
 
 --- toggle active's screen tags between all tags and tags where focus client is
 awful.tag.viewall_toggle = function ()
---#TODO: use lain.layout.uselessfair
+--TODO: use lain.layout.uselessfair
 	-- mouse.screen fails if a tag has none clients.
 	s = mouse.screen
 	tags = awful.tag.gettags(s) -- all tags of current screen
@@ -362,6 +364,76 @@ end
 -- {{{ Menu
 mymainmenu = awful.menu.new({ items = require("menugen").build_menu(),
                               theme = { height = 20, width = 200 }})
+--TODO:update menus
+-- menu functions
+awful.menu.create_client_menu = function(c)
+	local menu = radical.context{}
+	menu.style = radical.style.arrow
+	menu:add_item{text="Tag",sub_menu = function()
+		local subMenu = radical.context{}
+		tags = awful.tag.gettags(mouse.screen)
+		for t in pairs(tags) do
+			tag = tags[t]
+			local isTagPartOfC = false
+			c_tags = c:tags()
+			for i in pairs(c_tags) do
+				if c_tags[i] == tags[t] then
+					isTagPartOfC = true
+				end
+			end 
+			if not isTagPartOfC or #c_tags > 1 then
+				subMenu:add_item {text=tag.name ,sub_menu = function()
+					local subMenu = radical.context{}
+					if not isTagPartOfC or #c_tags > 1 then
+						subMenu:add_item {text="Move", button1 = function(_menu,item,mods)
+							awful.client.movetotag(tags[t], c)
+							menu.visible = false
+						end}
+					end
+					if not isTagPartOfC then
+						subMenu:add_item {text="Add", button1 = function(_menu,item,mods)
+							awful.client.toggletag(tags[t], c)
+							menu.visible = false
+						end}
+					end
+					if isTagPartOfC and #c_tags > 1 then
+						subMenu:add_item {text="Remove", button1 = function(_menu,item,mods)
+							awful.client.toggletag(tags[t], c)
+							menu.visible = false
+						end}
+					end
+					return subMenu
+				 end}
+			end
+		end
+		return subMenu
+	end}
+	menu:add_item{text="Screen",sub_menu = function()
+		local subMenu = radical.context{}
+		for s = 1, screen.count() do
+			if s~= mouse.screen then
+				subMenu:add_item {text="Screen " .. s, button1 = function(_menu,item,mods)
+					menu.visible = false
+					awful.client.movetoscreen(c, s)
+				end}
+			end
+		end
+		return subMenu
+	end}
+	menu:add_item {text="Move",button1=function(_menu,item,mods)
+		menu.visible = false
+		awful.mouse.client.move()
+	end}
+--TODO fix mousegrabber move resize
+	menu:add_item {text="Resize",button1=function(_menu,item,mods)
+		menu.visible = false
+		awful.mouse.client.resize()
+	end}
+	c:connect_signal("unfocus",function()
+		menu.visible = false
+	end)
+	return menu
+end
 -- }}}
 
 -- {{{ Wibox
@@ -625,7 +697,6 @@ for s = 1, screen.count() do
     right_layout:add(volumewidget)
     right_layout:add(bar_spr)
     right_layout:add(mytextclock)
-
     -- Now bring it all together (with the tasklist in the middle)
     local layout = wibox.layout.align.horizontal()
     layout:set_left(left_layout)
@@ -975,12 +1046,12 @@ client.connect_signal("manage", function (c, startup)
                     client.focus = c
                     c:raise()
                     awful.mouse.client.move(c)
-                end),
-                awful.button({ }, 3, function()
-                    client.focus = c
-                    c:raise()
-                    awful.mouse.client.resize(c)
-                end)
+                end)--,
+                --awful.button({ }, 3, function()
+                    --client.focus = c
+                    --c:raise()
+                    --awful.mouse.client.resize(c)
+                --end)
                 )
 		local infoBox = {}
 		infoBox.textbox = wibox.widget.textbox()
@@ -1011,6 +1082,7 @@ client.connect_signal("manage", function (c, startup)
 		-- Widgets that are aligned to the left
 		local left_layout = wibox.layout.fixed.horizontal()
 		widget = awful.titlebar.widget.floatingbutton(c)
+		widget:set_tooltip("Floating")
 		widget:connect_signal("mouse::enter",function()
 			infoBox:set_text("Floating")
 		end)
@@ -1020,6 +1092,7 @@ client.connect_signal("manage", function (c, startup)
 		left_layout:add(widget)
 		
 		widget = awful.titlebar.widget.stickybutton(c)
+		widget:set_tooltip("Sticky")
 		widget:connect_signal("mouse::enter",function()
 			infoBox:set_text("Sticky")
 		end)
@@ -1041,6 +1114,8 @@ client.connect_signal("manage", function (c, startup)
 		end
 		c:connect_signal("property::name", update)
 		update()
+		menu = awful.menu.create_client_menu(c)
+		title:set_menu(menu,3)
 		
         title:set_align("center")
         middle_layout:add(title)
@@ -1050,6 +1125,7 @@ client.connect_signal("manage", function (c, startup)
         local right_layout = wibox.layout.fixed.horizontal()
         
         widget = awful.titlebar.widget.ontopbutton(c)
+        widget:set_tooltip("On Top")
 		widget:connect_signal("mouse::enter",function()
 			infoBox:set_text("On Top")
 		end)
@@ -1059,6 +1135,7 @@ client.connect_signal("manage", function (c, startup)
         right_layout:add(widget)
         
 		widget = awful.titlebar.widget.maximizedbutton(c)
+		widget:set_tooltip("Maximize")
 		widget:connect_signal("mouse::enter",function()
 			infoBox:set_text("Maximize")
 		end)
@@ -1068,6 +1145,7 @@ client.connect_signal("manage", function (c, startup)
         right_layout:add(widget)
         
 		widget = awful.titlebar.widget.closebutton(c)
+		widget:set_tooltip("Close")
 		widget:connect_signal("mouse::enter",function()
 			infoBox:set_text("Close")
 		end)
