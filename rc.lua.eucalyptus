@@ -84,17 +84,18 @@ lain.layout.centerfair.ncol    = 1
 
 local layouts = {
 	awful.layout.suit.tile.top, -- suit is the only one mouse resize works
-	awful.layout.suit.tile,
-	awful.layout.suit.tile.left,
-	awful.layout.suit.tile.bottom,
+--	awful.layout.suit.tile,
+--	awful.layout.suit.tile.left,
+--	awful.layout.suit.tile.bottom,
 --TODO: fix mouse resize see https://github.com/Ram-Z/lain/commit/19c89b4f00231aa29019708134fce39a40d4b06e
-	lain.layout.uselessfair.horizontal,
-	awful.layout.suit.fair,
-	lain.layout.uselesstile,
-	lain.layout.uselessfair,
-	lain.layout.termfair,
-	lain.layout.centerfair,
-	lain.layout.uselesspiral.dwindle,
+--	lain.layout.uselessfair.horizontal,
+--	awful.layout.suit.fair,
+--	lain.layout.uselesstile,
+--	lain.layout.uselessfair,
+--	lain.layout.termfair,
+--	lain.layout.centerfair,
+--	lain.layout.uselesspiral.dwindle,
+	eucalyptus.layout.test
 }
 -- }}}
 
