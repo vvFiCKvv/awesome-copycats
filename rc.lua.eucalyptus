@@ -19,7 +19,6 @@ local eminent   = require("eminent")
 
 local radical = require("radical")
 local eucalyptus = require("eucalyptus")
-shortcuts = require ("eucalyptus.shortcuts")
 -- }}}
 
 -- {{{ Error handling
@@ -43,14 +42,7 @@ do
 end
 -- }}}
 
--- {{{ Local variables
---shortcuts = eucalyptus.shortcuts
-local clientkeys  = shortcuts.clientkeys
-local clientbuttons = shortcuts.clientbuttons
-terminal = shortcuts.terminal
-local modkey = shortcuts.modkey
 
--- }}}
 
 
 
@@ -74,7 +66,15 @@ os.setlocale(os.getenv("LANG"))
 
 -- beautiful init
 beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/eucalyptus/theme.lua")
+-- {{{ Local variables
 
+
+shortcuts = require ("eucalyptus.shortcuts")
+local clientkeys  = shortcuts.clientkeys
+local clientbuttons = shortcuts.clientbuttons
+terminal = shortcuts.terminal
+local modkey = shortcuts.modkey
+-- }}}
 
 -- lain
 lain.layout.termfair.nmaster   = 3
@@ -129,6 +129,7 @@ root.buttons(awful.util.table.join(
 ))
 -- }}}
 -- Set keys
+
 root.keys(shortcuts.globalkeys)
 	
 -- {{{ Rules
