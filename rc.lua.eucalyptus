@@ -18,7 +18,7 @@ local lain      = require("lain")
 local eminent   = require("eminent")
 
 local radical = require("radical")
-local eucalyptus = require("eucalyptus")
+local pretty = require("pretty")
 -- }}}
 
 -- {{{ Error handling
@@ -69,7 +69,7 @@ beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/eucalyptus/theme.lu
 -- {{{ Local variables
 
 
-shortcuts = require ("eucalyptus.shortcuts")
+shortcuts = require ("pretty.shortcuts")
 local clientkeys  = shortcuts.clientkeys
 local clientbuttons = shortcuts.clientbuttons
 terminal = shortcuts.terminal
@@ -95,7 +95,7 @@ local layouts = {
 --	lain.layout.termfair,
 --	lain.layout.centerfair,
 --	lain.layout.uselesspiral.dwindle,
---	eucalyptus.layout.test
+--	pretty.layout.test
 }
 -- }}}
 
@@ -119,7 +119,7 @@ end
 mymainmenu = awful.menu.new({ items = require("menugen").build_menu(),
                               theme = { height = 20, width = 200 }})
 
-eucalyptus.widgets.panel(layouts)
+pretty.widgets.panel(layouts)
 
 -- {{{ Mouse bindings
 root.buttons(awful.util.table.join(
@@ -166,7 +166,7 @@ client.connect_signal("manage", function (c, startup)
          end
      end)
 	--TODO:    titlebar
-	menu = eucalyptus.menus.client(c)
-	eucalyptus.widgets.titlebar(c, menu)
+	menu = pretty.menus.client(c)
+	pretty.widgets.titlebar(c, menu)
 	
 end)
