@@ -69,7 +69,7 @@ beautiful.init(os.getenv("HOME") .. "/.config/awesome/themes/eucalyptus/theme.lu
 -- {{{ Local variables
 
 
-shortcuts = require ("pretty.shortcuts")
+shortcuts = require ("shortcuts")
 local clientkeys  = shortcuts.clientkeys
 local clientbuttons = shortcuts.clientbuttons
 terminal = shortcuts.terminal
