@@ -4,6 +4,7 @@ local print,ipairs  = print,ipairs
 local awful     = require("awful")
 local beautiful = require("beautiful")
 local drop      = require("scratchdrop")
+local pretty = require("pretty")
 --local alttab       = require( "radical.impl.alttab"        )
 
 local module = {}
@@ -36,7 +37,7 @@ local function init()
 		awful.key({ module.modkey }, "Left",   awful.tag.viewprev       ),
 		awful.key({ module.modkey }, "Right",  awful.tag.viewnext       ),
 	--TODO: functionality to do multiple history changes
-		awful.key({ module.modkey }, "Tab", function () awful.tag.history.switch() end),
+		awful.key({ module.modkey }, "Tab", function () pretty.tag.history.switch() end),
 		
 	--TODO: functionality to do multiple history changes
 		awful.key({ module.modkey }, "Caps_Lock", 	
@@ -108,7 +109,7 @@ local function init()
 		awful.key({ module.modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
 		awful.key({ module.modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
 		awful.key({ module.modkey,           }, "u", awful.client.urgent.jumpto),
-		awful.key({ module.altkey,           }, "Tab", function ()  awful.client.focus.history.switch(true, true) end),
+		awful.key({ module.altkey,           }, "Tab", function ()  pretty.client.focus.history.switch(true, true) end),
 --		awful.key({ module.altkey }, "Tab", function () alttab.altTab({auto_release=true}) end),
 	--TODO: change shortcat for rename
 	--    awful.key({ module.altkey, "Shift"   }, "l",      function () awful.tag.incmwfact( 0.05)     end),
@@ -120,12 +121,8 @@ local function init()
 	--    awful.key({ module.modkey,           }, "space",  function () awful.layout.inc(layouts,  1)  end),
 		awful.key({ module.modkey, "Shift"   }, "space",  function () awful.layout.inc(layouts, -1)  end),
 		awful.key({ module.modkey, "Control" }, "n",      awful.client.restore),
-		awful.key({ module.modkey,           }, "q", 
-		function ()
-			local t = awful.tag.selected()
-			awful.layout.floating_toggle(mouse.screen,t)
-		end ),
-		awful.key({ module.modkey,           }, "space", function () awful.tag.max_toggle("toggle") end),
+		awful.key({ module.modkey,           }, "q", function () pretty.layout.floating_toggle() end ),
+		awful.key({ module.modkey,           }, "space", function () pritty.tag.max_toggle("toggle") end),
 
 		-- Standard program
 		awful.key({ module.modkey,           }, "Return", function () awful.util.spawn(module.terminal) end),
@@ -209,10 +206,10 @@ local function init()
 					  awful.util.getdir("cache") .. "/history_eval")
 				  end),
 ---]]
-		awful.key({ module.modkey,           }, "`", function () awful.tag.viewall_toggle() end),
+		awful.key({ module.modkey,           }, "`", function () pretty.tag.viewall_toggle() end),
 
-		awful.key({ module.modkey, "Shift" }, "o", function () awful.screen.move_all_clients() end),
-		awful.key({ module.modkey, "Shift" }, "`", function () awful.tag.viewall_screens_toggle() end),
+		awful.key({ module.modkey, "Shift" }, "o", function () pretty.screen.move_all_clients() end),
+		awful.key({ module.modkey, "Shift" }, "`", function () pretty.tag.viewall_screens_toggle() end),
 		awful.key({ module.modkey, }, "[",  function () awful.screen.toggle(-1) end),
 		awful.key({ module.modkey, }, "]",  function () awful.screen.toggle(1) end)
 	)
@@ -232,12 +229,7 @@ local function init()
 				-- minimized, since minimized clients can't have the focus.
 				c.minimized = true
 			end),
-		awful.key({ module.modkey,           }, "m",
-			function (c)
-				c.maximized_horizontal = not c.maximized_horizontal
-				c.maximized_vertical   = not c.maximized_vertical
-			end)
-
+		awful.key({ module.modkey,           }, "m", function (c) pretty.client.maximize(c, "toggle") end)
 	)
 
 	-- Bind all key numbers to tags.
