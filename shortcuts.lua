@@ -122,7 +122,7 @@ local function init()
 		awful.key({ module.modkey, "Shift"   }, "space",  function () awful.layout.inc(layouts, -1)  end),
 		awful.key({ module.modkey, "Control" }, "n",      awful.client.restore),
 		awful.key({ module.modkey,           }, "q", function () pretty.layout.floating_toggle() end ),
-		awful.key({ module.modkey,           }, "space", function () pritty.tag.max_toggle("toggle") end),
+		awful.key({ module.modkey,           }, "space", function () pretty.tag.max_toggle("toggle") end),
 
 		-- Standard program
 		awful.key({ module.modkey,           }, "Return", function () awful.util.spawn(module.terminal) end),
@@ -210,8 +210,8 @@ local function init()
 
 		awful.key({ module.modkey, "Shift" }, "o", function () pretty.screen.move_all_clients() end),
 		awful.key({ module.modkey, "Shift" }, "`", function () pretty.tag.viewall_screens_toggle() end),
-		awful.key({ module.modkey, }, "[",  function () awful.screen.toggle(-1) end),
-		awful.key({ module.modkey, }, "]",  function () awful.screen.toggle(1) end)
+		awful.key({ module.modkey, }, "[",  function () pretty.screen.toggle(-1) end),
+		awful.key({ module.modkey, }, "]",  function () pretty.screen.toggle(1) end)
 	)
 
 	module.clientkeys = awful.util.table.join(

@@ -37,6 +37,10 @@ do
         naughty.notify({ preset = naughty.config.presets.critical,
                          title = err, --"Oops, an error happened!",
                          text =  debug.traceback() })
+		print("=============================ERROR==================================")
+		print(err)
+		print(debug.traceback())
+		print("--------------------------------------------------------------------")
         in_error = false
     end)
 end
