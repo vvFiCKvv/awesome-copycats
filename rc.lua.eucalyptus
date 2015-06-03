@@ -111,7 +111,7 @@ tags = {
 for s = 1, screen.count() do
    tags[s] = awful.tag(tags.names, s, tags.layout)
 end
-
+pretty.init()
 -- {{{ Wallpaper
 if beautiful.wallpaper then
     for s = 1, screen.count() do
