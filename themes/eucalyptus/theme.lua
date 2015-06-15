@@ -10,17 +10,18 @@ theme                                           = {}
 theme.dir                                       = os.getenv("HOME") .. "/.config/awesome/themes/eucalyptus"
 theme.wallpaper                                 = theme.dir .. "/wall.jpg"
 palette = {}
-palette.baseA = "#40088B"
-palette.baseB = "#211236"
-palette.baseC = "#5C3F82"
-palette.complementaryA ="#FFFFFF"
-palette.complementaryB ="#AAAAAA"
+palette.baseA = "#6863b3"
+palette.baseB = "#2c2a4c"
+palette.baseC = "#3e3d47"
+palette.complementaryA ="#feffca"
+palette.complementaryB ="#a6a790"
 
-theme.font                                      = "Tamsyn 10.5"
+--theme.font                                      = "Tamsyn 10.5"
+theme.font                                      = "Roboto 12"
 theme.fg_normal                                 = palette.complementaryB
 theme.fg_focus                                  = palette.complementaryA
 theme.bg_normal                                 = palette.baseB
-theme.bg_focus                                  = palette.baseC
+theme.bg_focus                                  = palette.baseA
 theme.fg_urgent                                 = "#000000"
 theme.bg_urgent                                 = "#FFFFFF"
 theme.border_width                              = 1
@@ -28,11 +29,11 @@ theme.border_normal                             = palette.baseB
 theme.border_focus                              = palette.complementaryA
 
 theme.taglist_fg_focus                          = palette.complementaryA
-theme.taglist_bg_focus                          = palette.baseC
+theme.taglist_bg_focus                          = palette.baseA
 theme.taglist_bg_normal                         = palette.baseB
 
 theme.titlebar_bg_normal                        = palette.baseB
-theme.titlebar_bg_focus                         = palette.baseC
+theme.titlebar_bg_focus                         = palette.baseA
 theme.titlebar_disable_icon                     = true
 
 theme.tasklist_sticky                           = ""
