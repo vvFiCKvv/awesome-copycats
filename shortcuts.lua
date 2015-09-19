@@ -20,6 +20,7 @@ module.editor_cmd = module.terminal .. " -e " .. module.editor
 
 -- user defined
 module.launcher =  function () return "dmenu_run  -m " .. mouse.screen - 1 .. "-i -b -nb '" .. beautiful.bg_normal .. "' -sb '" .. beautiful.bg_focus .. "'" end
+--module.launcher = function() require("menubar").show(mouse.screen) end
 module.browser    = "google-chrome-unstable"
 module.browser2   = "firefox"
 module.gui_editor = "geany"
@@ -28,24 +29,49 @@ module.filemanager = "nemo --no-desktop"
 
 local function init()
 	-- {{{ Key bindings
+	awful.key.ignore_modifiers =  { "Lock", "Mod2", "Mod5" }
 	module.globalkeys = awful.util.table.join(
 		-- Take a screenshot
 		-- https://github.com/copycat-killer/dots/blob/master/bin/screenshot
-	--TODO: copy it from cinnamon
+--TODO: copy it from cinnamon
 		awful.key({ module.altkey }, "p", function() os.execute("screenshot") end),
+--TODO: remove below test function
+		awful.key({ module.modkey }, "g", function() 
+			--[[
+			local grabber = awful.keygrabber.run(function(mod, key, event)
+				local mod1 = require("pretty.debug").tostringR(mod)
+				--ISO_Left_Tab
+				
+				print(mod1, key, event)
+		   end)
+		   ---]]
+		   local radical = require("radical")
+		       local pref_menu = radical.box()
+				--pref_menu:add_item{text="Exclusive"}
+				--pref_menu:add_widget(radical.widgets.separator())
+				--pref_menu:add_item{text="12 clients"}
+				--pref_menu.margins.left = 100
+				--pref_menu.margins.right = 100
+				--pref_menu.margins.top = 100
+				--pref_menu.margins.bottom = 100
+				--local item = pref_menu:add_item{text="All Screens"}
+				--item.margins.left = 30
+				local typeMenu = radical.widgets.piechart()
+				data = {}
+				data["a"] = 1
+				data["b"] = 2
+				data["c"] = 3
+				typeMenu:set_data(data)
+				pref_menu:add_widget(typeMenu,{height = 100 , width = 100})
+				pref_menu.visible = true
+			--print(require("pretty.debug").status("test",2))
+		end),
 		-- Tag browsing
 		awful.key({ module.modkey }, "Left",   awful.tag.viewprev       ),
 		awful.key({ module.modkey }, "Right",  awful.tag.viewnext       ),
-	--TODO: functionality to do multiple history changes
-		awful.key({ module.modkey }, "Tab", function () pretty.tag.history.switch() end),
 		
 	--TODO: functionality to do multiple history changes
-		awful.key({ module.modkey }, "Caps_Lock", 	
-			function()
-				for i =1, screen.count() do
-					awful.tag.history.restore(i)
-				end
-			end ),
+		awful.key({ module.modkey }, "Caps_Lock", function() pretty.tag.sync_toggle() end ),
 		-- Non-empty tag browsing
 	--    awful.key({ module.altkey }, "Left", function () lain.util.tag_view_nonempty(-1) end),
 	--    awful.key({ module.altkey }, "Right", function () lain.util.tag_view_nonempty(1) end),
@@ -87,7 +113,8 @@ local function init()
 		-- Show Menu
 		awful.key({ module.modkey }, "w",
 			function ()
-				mymainmenu:show({ keygrabber = true })
+				local menu = require("pretty.menus.application").build_menu()
+				require("pretty.menus").popup(menu) 
 			end),
 	--TODO: mywibox keys
 		-- Show/Hide Wibox
@@ -109,7 +136,56 @@ local function init()
 		awful.key({ module.modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end),
 		awful.key({ module.modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end),
 		awful.key({ module.modkey,           }, "u", awful.client.urgent.jumpto),
-		awful.key({ module.altkey,           }, "Tab", function ()  pretty.client.focus.history.switch(true, true) end),
+		awful.key({ module.altkey,           }, "Tab", function ()
+		local menu = require("pretty.menus.client").switch.next(1)
+		menu:add_key_hook({}, "Alt_L"      , "release", function ()
+			menu:hide()
+			end)
+		menu:add_key_hook({}, "Tab"      , "press", function () 
+		--ISO_Left_Tab
+			menu.visible = true
+			--require("pretty.menus").popup(menu) 
+		end)
+		menu.visible = true
+		end),
+		awful.key({ module.altkey,           }, "Caps_Lock", function ()
+		local menu = require("pretty.menus").layout(1)
+		menu:add_key_hook({}, "Alt_L"      , "release", function ()
+			menu:hide()
+			end)
+		menu:add_key_hook({}, "Caps_Lock"      , "press", function () 
+			menu.visible = true
+			--require("pretty.menus").popup(menu)
+		end)
+		menu.visible = true
+		end),
+		--TODO: functionality to do multiple history changes
+		awful.key({ module.modkey }, "Tab", function ()
+		local menu = require("pretty.menus").tag.switch.next(1)
+		---[[
+		menu:add_key_hook({}, module.modkey      , "release", function ()
+			menu:hide()
+			end)
+		menu:add_key_hook({}, "Tab"      , "press", function () 
+			menu.visible = true
+			--require("pretty.menus").popup(menu)
+		end)
+		---]]
+		menu.visible = true
+		end),
+		---[[
+		awful.key({ module.altkey }, "Shift_L", function ()
+		local menu = require("pretty.menus").language(1)
+		menu:add_key_hook({}, module.altkey      , "release", function ()
+			menu:hide()
+			end)
+		menu:add_key_hook({}, "Shift_L"      , "press", function () 
+			menu.visible = true
+			--require("pretty.menus").popup(menu)
+		end)
+		menu.visible = true
+		end),
+		---]]
 --		awful.key({ module.altkey }, "Tab", function () alttab.altTab({auto_release=true}) end),
 	--TODO: change shortcat for rename
 	--    awful.key({ module.altkey, "Shift"   }, "l",      function () awful.tag.incmwfact( 0.05)     end),

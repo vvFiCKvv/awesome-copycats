@@ -119,18 +119,14 @@ if beautiful.wallpaper then
     end
 end
 -- }}}
--- {{{ Menu
-mymainmenu = awful.menu.new({ items = require("menugen").build_menu(),
-                              theme = { height = 20, width = 200 }})
 
 pretty.widgets.panel(layouts)
 
 -- {{{ Mouse bindings
 root.buttons(awful.util.table.join(
     awful.button({ }, 3, function ()
-		require("pretty.menus").popup(mymainmenu)
-		--require("pretty.menus").timer.attach(mymainmenu)
-		mymainmenu:toggle() 
+		local menu = require("pretty.menus.application").build_menu()
+		require("pretty.menus").popup(menu) 
 	end),
     awful.button({ }, 4, awful.tag.viewnext),
     awful.button({ }, 5, awful.tag.viewprev)
